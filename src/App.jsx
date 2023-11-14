@@ -48,10 +48,10 @@ function App() {
         const containsSearchTerm =
           searchTerm === "" ||
           product.name.toLowerCase().includes(searchTerm.toLowerCase());
-
+  
         return isInCategory && containsSearchTerm;
       });
-
+  
       // フィルタリングされた商品をセット
       setFilteredProducts(updatedFilteredProducts);
     } catch (error) {
