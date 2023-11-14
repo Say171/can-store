@@ -4,59 +4,71 @@ function App() {
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [finalGroup, setFinalGroup] = useState([]);
+  const [lastCategory, setLastCategory] = useState("All");
+  const [lastSearch, setLastSearch] = useState("");
 
   useEffect(() => {
-    // 非同期関数を定義
     const fetchData = async () => {
       try {
-        // データを取得
         const response = await fetch("/products.json");
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
         const data = await response.json();
-
-        // 取得したデータをセット
-        setProducts(data);
+        initialize(data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error(`Fetch problem: ${error.message}`);
       }
     };
 
-    // fetchDataを呼び出し
     fetchData();
   }, []); // 空の依存配列を渡して初回のみ呼び出し
 
-  useEffect(() => {
-    // 商品のフィルタリング
-    const updatedFilteredProducts = products.filter((product) => {
-      const isInCategory = category === "All" || product.type === category;
-      const containsSearchTerm =
-        searchTerm === "" ||
-        product.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const initialize = (products) => {
+    setProducts(products);
+    setLastCategory("All");
+    setLastSearch("");
+    setFinalGroup(products);
+    updateDisplay();
+  };
 
-      return isInCategory && containsSearchTerm;
-    });
+  const selectCategory = (e) => {
+    e.preventDefault();
 
-    // フィルタリングされた商品をセット
-    setFilteredProducts(updatedFilteredProducts);
-  }, [products, category, searchTerm]);
-
-  const handleFilterClick = async () => {
-    try {
-      // フィルタリング処理を実行
-      const updatedFilteredProducts = products.filter((product) => {
-        const isInCategory = category === "All" || product.type === category;
-        const containsSearchTerm =
-          searchTerm === "" ||
-          product.name.toLowerCase().includes(searchTerm.toLowerCase());
-  
-        return isInCategory && containsSearchTerm;
-      });
-  
-      // フィルタリングされた商品をセット
-      setFilteredProducts(updatedFilteredProducts);
-    } catch (error) {
-      console.error("Error filtering data:", error);
+    if (category === lastCategory && searchTerm.trim() === lastSearch) {
+      return;
     }
+
+    setLastCategory(category);
+    setLastSearch(searchTerm.trim());
+
+    let categoryGroup = [];
+    let updatedFinalGroup = [];
+
+    if (category === "All") {
+      categoryGroup = products;
+      updatedFinalGroup = categoryGroup;
+    } else {
+      const lowerCaseType = category.toLowerCase();
+      categoryGroup = products.filter((product) => product.type === lowerCaseType);
+      updatedFinalGroup = categoryGroup;
+    }
+
+    if (searchTerm.trim() !== "") {
+      const lowerCaseSearchTerm = searchTerm.trim().toLowerCase();
+      updatedFinalGroup = categoryGroup.filter((product) =>
+        product.name.includes(lowerCaseSearchTerm)
+      );
+    }
+
+    setFinalGroup(updatedFinalGroup);
+    updateDisplay();
+  };
+
+  const updateDisplay = () => {
+    // 画面更新のロジックを追加
+    // ...
   };
 
   return (
@@ -75,9 +87,9 @@ function App() {
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option>All</option>
-                <option>vegetables</option>
-                <option>meat</option>
-                <option>soup</option>
+                <option>Vegetables</option>
+                <option>Meat</option>
+                <option>Soup</option>
               </select>
             </div>
             <div>
@@ -91,22 +103,21 @@ function App() {
               />
             </div>
             <div>
-              {/* ボタンがクリックされたときにフィルタリング処理をトリガー */}
-              <button type="button" onClick={handleFilterClick}>
+              <button type="button" onClick={selectCategory}>
                 Filter results
               </button>
             </div>
           </form>
         </aside>
         <main>
-          {filteredProducts.length === 0 ? (
+          {finalGroup.length === 0 ? (
             <p>No results to display!</p>
           ) : (
-            filteredProducts.map((product, index) => (
+            finalGroup.map((product, index) => (
               <section key={index} className={product.type.toLowerCase()}>
                 <h2>{product.name}</h2>
                 <p>${product.price.toFixed(2)}</p>
-                <img src={`/images/${product.image}`} alt={product.name} />
+                <img src={`images/${product.image}`} alt={product.name} />
               </section>
             ))
           )}
