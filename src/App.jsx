@@ -75,9 +75,9 @@ function App() {
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option>All</option>
-                <option>Vegetables</option>
-                <option>Meat</option>
-                <option>Soup</option>
+                <option>vegetables</option>
+                <option>meat</option>
+                <option>soup</option>
               </select>
             </div>
             <div>
